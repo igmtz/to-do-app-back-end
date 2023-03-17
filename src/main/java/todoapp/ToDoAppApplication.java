@@ -22,7 +22,10 @@ public class ToDoAppApplication {
 	public CorsFilter corsFilter() {
 		CorsConfiguration corsConfiguration = new CorsConfiguration();
 		corsConfiguration.setAllowCredentials(true);
+		//Que pasara cuando ya no se invoque este endpoint desde localhost?, Seguiremos teniendo que considerar CORS?
 		corsConfiguration.setAllowedOrigins(Arrays.asList("http://localhost:8080"));
+		//Cosas como puertos, domains, etc que tienes que ver con configs en nuestra app
+		//son convenientes tenerlas como constantes, o mejor aun, externelizarlas en archivos .properties o .yml
 		corsConfiguration.setAllowedHeaders(Arrays.asList("Origin", "Access-Control-Allow-Origin", "Content-Type",
 				"Accept", "Authorization", "Origin, Accept", "X-Requested-With",
 				"Access-Control-Request-Method", "Access-Control-Request-Headers"));

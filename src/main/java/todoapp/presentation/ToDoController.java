@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
-@RestController
+@RestController()
 @RequestMapping("/toDo")
 public class ToDoController {
 
@@ -23,12 +23,15 @@ public class ToDoController {
     @GetMapping("/getAll")
     public ResponseEntity<Collection<ToDo>> getAllToDos() {
         Collection<ToDo> toDos = toDoService.findAllToDos();
-        return new ResponseEntity<>(toDos, HttpStatus.OK);
+        return new ResponseEntity(toDos, HttpStatus.OK);
     }
 
     @PostMapping("/addToDo")
     public ResponseEntity<ToDo> addToDo(@RequestBody ToDo toDo){
         ToDo newToDo = toDoService.addToDo(toDo);
+        //Que pasaria si ocurre algun error al intentar agregar un elemento al TODO list?
+        //Como serian los status code de respuesta en ese caso?
+        //Mandarias un mensaje de error?
         return new ResponseEntity<>(newToDo, HttpStatus.CREATED);
     }
 

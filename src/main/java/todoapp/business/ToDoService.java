@@ -59,14 +59,18 @@ public class ToDoService {
         return toDoRepository.findAll().stream().sorted(Comparator.comparing(ToDo::getDueDate, Comparator.nullsLast(Comparator.naturalOrder()))).collect(Collectors.toCollection(ArrayList::new));
     }
 
-    public ArrayList<ToDo> sortToDosByPriority() {
-        final String[] priority = new String[]{"High", "Medium", "Low"};
+    //Aqui se puede usar la interface List
+    public List<ToDo> sortToDosByPriority() {
+        //Enums podria ser una alternativa para definir los tipos de Priority
+        final String[] priorities = new String[]{"High", "Medium", "Low"};
         ArrayList<ToDo> newList = new ArrayList<>();
 
-        for (String i : priority) {
-            for (ToDo j : toDoRepository.findAll()) {
-                if (i.equals(j.getPriority())) {
-                    newList.add(j);
+        //Hay otras estrategias para implementar un ordenamiento en las coleciones.
+        //https://www.google.com/search?q=sort+collection+java&rlz=1C5CHFA_enMX965MX965&oq=sort+collection+java&aqs=chrome.0.0i512l3j0i22i30l7.2394j0j7&sourceid=chrome&ie=UTF-8
+        for (String priority : priorities) {//No esta del todo mal usar j, i, etc como variables en loops y asi, pero es mas facil de leer si le das mejores nombres
+            for (ToDo todo : toDoRepository.findAll()) {//Respecto a un FOR dentro de otro FOR, tienes contexto de la complejidad computacional de esto man?
+                if (priority.equals(todo.getPriority())) {
+                    newList.add(todo);
                 }
             }
         }
@@ -79,6 +83,8 @@ public class ToDoService {
             toDo.setDoneDate(null);
             toDo.setDoneUndoneFlag(false);
         } else {
+            //Una libreria de logging podria ser util aqui
+            //Aunque no me queda claro este ELSE
             System.out.println("No Error");
         }
         return toDo;
