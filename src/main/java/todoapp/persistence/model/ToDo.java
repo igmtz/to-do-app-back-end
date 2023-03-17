@@ -18,6 +18,7 @@ public class ToDo {
     private String id;
     private String name;
     private String priority;
+    //Consideras que ademas de la fecha, seria util tener la hora?
     @JsonDeserialize(using = LocalDateDeserializer.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd ")
     private LocalDate dueDate;
