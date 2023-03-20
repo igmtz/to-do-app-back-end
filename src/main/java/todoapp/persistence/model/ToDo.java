@@ -1,33 +1,19 @@
 package todoapp.persistence.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import org.springframework.context.annotation.Bean;
-
-import java.io.Serializable;
+import java.time.Duration;
 import java.time.LocalDate;
-import java.util.UUID;
+import java.time.LocalDateTime;
 
 public class ToDo {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+
     private String id;
     private String name;
     private String priority;
-    @JsonDeserialize(using = LocalDateDeserializer.class)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd ")
     private LocalDate dueDate;
-    @JsonDeserialize(using = LocalDateDeserializer.class)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd ")
-    private LocalDate creationDate;
-    @JsonDeserialize(using = LocalDateDeserializer.class)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd ")
-    private LocalDate doneDate;
+    private LocalDateTime creationDate;
+    private LocalDateTime doneDate;
     private boolean doneUndoneFlag;
+    private Duration timeToComplete;
 
     public ToDo() {
     }
@@ -36,18 +22,20 @@ public class ToDo {
         this.name = name;
         this.priority = priority;
         this.dueDate = dueDate;
-        this.creationDate = java.time.LocalDate.now();
+        this.creationDate = java.time.LocalDateTime.now();
         this.doneDate = null;
         this.doneUndoneFlag = false;
+        this.timeToComplete = null;
     }
 
     public ToDo(String name, String priority) {
         this.name = name;
         this.priority = priority;
         this.dueDate = null;
-        this.creationDate = java.time.LocalDate.now();
+        this.creationDate = java.time.LocalDateTime.now();
         this.doneDate = null;
         this.doneUndoneFlag = false;
+        this.timeToComplete = null;
     }
 
     public String getId() {
@@ -82,19 +70,19 @@ public class ToDo {
         this.dueDate = dueDate;
     }
 
-    public LocalDate getCreationDate() {
+    public LocalDateTime getCreationDate() {
         return creationDate;
     }
 
-    public void setCreationDate(LocalDate creationDate) {
+    public void setCreationDate(LocalDateTime creationDate) {
         this.creationDate = creationDate;
     }
 
-    public LocalDate getDoneDate() {
+    public LocalDateTime getDoneDate() {
         return doneDate;
     }
 
-    public void setDoneDate(LocalDate doneDate) {
+    public void setDoneDate(LocalDateTime doneDate) {
         this.doneDate = doneDate;
     }
 
@@ -104,6 +92,14 @@ public class ToDo {
 
     public void setDoneUndoneFlag(boolean doneUndoneFlag) {
         this.doneUndoneFlag = doneUndoneFlag;
+    }
+
+    public Duration getTimeToComplete() {
+        return timeToComplete;
+    }
+
+    public void setTimeToComplete(Duration timeToComplete) {
+        this.timeToComplete = timeToComplete;
     }
 
     @Override

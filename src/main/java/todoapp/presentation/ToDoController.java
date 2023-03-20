@@ -38,7 +38,7 @@ public class ToDoController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PostMapping("/{id}/done")
+    @PutMapping("/{id}/done")
     public ResponseEntity<ToDo> markToDoAsDone(@PathVariable("id") String id) {
         ToDo toDo = toDoService.markToDoAsDone(id);
         return new ResponseEntity<>(toDo, HttpStatus.OK);
@@ -56,33 +56,27 @@ public class ToDoController {
         return new ResponseEntity<>(toDoUpdated, HttpStatus.OK);
     }
     
-    @GetMapping("/getSortedByPriority")
-    public ResponseEntity<List<ToDo>> sortToDoByPriority() {
-        List<ToDo> toDosSorted = toDoService.sortToDosByPriority();
-        return new ResponseEntity<>(toDosSorted, HttpStatus.OK);
-    }
-
-    @GetMapping("/getSortedByDueDate")
-    public ResponseEntity<List<ToDo>> sortToDoByDueDate() {
-        List<ToDo> toDosSorted = toDoService.sortToDosByDueDate();
+    @GetMapping("/sortToDos")
+    public ResponseEntity<List<ToDo>> sortToDos(List<ToDo> prevList, String priorityOrder, String dateOrder) {
+        List<ToDo> toDosSorted = toDoService.stableSort(prevList, priorityOrder, dateOrder);
         return new ResponseEntity<>(toDosSorted, HttpStatus.OK);
     }
 
     @GetMapping("/filterByName")
-    public ResponseEntity<List<ToDo>> filterToDoByName(String name) {
-        List<ToDo> toDosFiltered = toDoService.filterToDosByName(name);
+    public ResponseEntity<List<ToDo>> filterToDoByName(List<ToDo> prevList, String name) {
+        List<ToDo> toDosFiltered = toDoService.filterToDosByName(prevList, name);
         return new ResponseEntity<>(toDosFiltered, HttpStatus.OK);
     }
 
     @GetMapping("/filterByPriority")
-    public ResponseEntity<List<ToDo>> filterToDoByPriority(String priority) {
-        List<ToDo> toDosFiltered = toDoService.filterToDosByPriority(priority);
+    public ResponseEntity<List<ToDo>> filterToDoByPriority(List<ToDo> prevList, String priority) {
+        List<ToDo> toDosFiltered = toDoService.filterToDosByPriority(prevList, priority);
         return new ResponseEntity<>(toDosFiltered, HttpStatus.OK);
     }
 
     @GetMapping("/filterByFlag")
-    public ResponseEntity<List<ToDo>> filterToDoByFlag(Boolean flag) {
-        List<ToDo> toDosFiltered = toDoService.filterToDosByFlag(flag);
+    public ResponseEntity<List<ToDo>> filterToDoByFlag(List<ToDo> prevList, Boolean flag) {
+        List<ToDo> toDosFiltered = toDoService.filterToDosByFlag(prevList, flag);
         return new ResponseEntity<>(toDosFiltered, HttpStatus.OK);
     }
 
