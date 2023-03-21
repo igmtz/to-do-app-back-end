@@ -10,7 +10,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.server.ResponseStatusException;
 import todoapp.persistence.model.ToDo;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -246,7 +248,6 @@ class ToDoServiceTest {
         toDoService.markToDoAsDone(toDoAdded.getId());
 
         assertTrue(toDoAdded.isDoneUndoneFlag());
-        assertEquals(java.time.LocalDateTime.now(), toDoAdded.getDoneDate());
     }
 
     @Test
@@ -276,7 +277,6 @@ class ToDoServiceTest {
         toDoService.markToDoAsDone(toDoAdded.getId());
 
         assertTrue(toDoAdded.isDoneUndoneFlag());
-        assertEquals(java.time.LocalDateTime.now(), toDoAdded.getDoneDate());
 
         toDoService.markToDoAsUndone(toDoAdded.getId());
 
@@ -342,5 +342,41 @@ class ToDoServiceTest {
 
         System.out.println(toDoService.stableSort(testList, "desc", "asc"));
     }
+
+    @Test
+    void testStatistics() {
+        ToDo toDoOne = toDoService.addToDo(new ToDo("Create tests", "High", LocalDate.parse("2023-12-15")));
+        ToDo toDoTwo = toDoService.addToDo(new ToDo("Start Front End", "Low", LocalDate.parse("2023-12-03")));
+        ToDo toDoThree = toDoService.addToDo(new ToDo("Start Back End", "Medium"));
+        ToDo toDoFour = toDoService.addToDo(new ToDo("Get groceries", "Low", LocalDate.parse("2023-12-17")));
+
+        toDoService.markToDoAsDone(toDoOne.getId());
+        toDoOne.setTimeToComplete(Duration.between(LocalDateTime.now(), LocalDateTime.parse("2023-03-20T14:34:50.62")).toMinutes());
+
+        toDoService.markToDoAsDone(toDoTwo.getId());
+        toDoTwo.setTimeToComplete(Duration.between(LocalDateTime.now(), LocalDateTime.parse("2023-03-20T10:34:50.62")).toMinutes());
+
+        toDoService.markToDoAsDone(toDoThree.getId());
+        toDoThree.setTimeToComplete(Duration.between(LocalDateTime.now(), LocalDateTime.parse("2023-03-20T11:34:50.62")).toMinutes());
+
+        toDoService.markToDoAsDone(toDoFour.getId());
+        toDoFour.setTimeToComplete(Duration.between(LocalDateTime.now(), LocalDateTime.parse("2023-03-20T10:15:50.62")).toMinutes());
+
+        System.out.println(toDoService.getStatistics());
+    }
+
+    @Test
+    void filterToDosByName() {
+    }
+
+    @Test
+    void filterToDosByPriority() {
+    }
+
+    @Test
+    void filterToDosByFlag() {
+    }
+
+    //filterToDosByFlag
 
 }

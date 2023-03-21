@@ -76,15 +76,52 @@ public class ToDoService {
         }
     }
 
+    public List<List<ToDo>> pagination(String name, String priority, Boolean doneUnDoneFlag, String priorityOrder, String dateOrder) {
+        List<ToDo> totalElements = this.getElementsSortedAndFiltered(name, priority, doneUnDoneFlag, priorityOrder, dateOrder);
+
+        int pageSize = 10;
+        int numberOfPages = (int) Math.ceil((double) totalElements.size()/pageSize);
+
+        List<List<ToDo>> pages = new ArrayList<>();
+
+        for( int page = 0; page < numberOfPages; page++) {
+            int minIndex = page * pageSize;
+            int maxIndex = Math.min(minIndex + pageSize, totalElements.size());
+            List<ToDo> sublist = totalElements.subList(minIndex, maxIndex);
+            pages.add(sublist);
+        }
+
+        return pages;
+    }
+
+    public List<ToDo> getElementsSortedAndFiltered(String name, String priority, Boolean doneUnDoneFlag, String priorityOrder, String dateOrder) {
+        List<ToDo> initialList = this.findAllToDos();
+
+        List<ToDo> filteredPriority = this.filterToDosByPriority(initialList, priority);
+        List<ToDo> filteredByName = this.filterToDosByName(filteredPriority, name);
+        List<ToDo> filteredByFlag = this.filterToDosByFlag(filteredByName, doneUnDoneFlag);
+
+        return this.stableSort(filteredByFlag, priorityOrder, dateOrder);
+    }
+
     public List<ToDo> filterToDosByPriority(List<ToDo> prevList, String priority) {
+        if (priority.equals("default")) {
+            return prevList;
+        }
         return prevList.stream().filter(toDo -> toDo.getPriority().equals(priority)).collect(Collectors.toCollection(ArrayList::new));
     }
 
     public List<ToDo> filterToDosByName(List<ToDo> prevList, String name) {
+        if (name.equals("")) {
+            return prevList;
+        }
         return prevList.stream().filter(toDo -> Pattern.compile(Pattern.quote(name), Pattern.CASE_INSENSITIVE).matcher(toDo.getName()).find()).collect(Collectors.toCollection(ArrayList::new));
     }
 
     public List<ToDo> filterToDosByFlag(List<ToDo> prevList, Boolean flag) {
+        if (flag == null) {
+            return prevList;
+        }
         return prevList.stream().filter(toDo -> toDo.isDoneUndoneFlag() == flag).collect(Collectors.toCollection(ArrayList::new));
     }
 
@@ -146,8 +183,7 @@ public class ToDoService {
 
             toDo.setDoneUndoneFlag(true);
             toDo.setDoneDate(java.time.LocalDateTime.now());
-            toDo.setTimeToComplete(Duration.between(toDo.getCreationDate(), toDo.getDoneDate()));
-            System.out.println(Duration.between(toDo.getCreationDate(), toDo.getDoneDate()).toMinutes());
+            toDo.setTimeToComplete(Duration.between(toDo.getCreationDate(), toDo.getDoneDate()).toMinutes());
 
             return toDo;
 
@@ -156,6 +192,24 @@ public class ToDoService {
         } catch (IllegalArgumentException illegalArgumentException) {
             throw  new ResponseStatusException(HttpStatus.BAD_REQUEST, illegalArgumentException.getMessage());
         }
+    }
+
+    public List<Long> getStatistics() {
+        List<ToDo> allToDosDone = this.filterToDosByFlag(this.findAllToDos(), true);
+        List<ToDo> toDosWithHighPriority = this.filterToDosByPriority(allToDosDone, "High");
+        List<ToDo> toDosWithMediumPriority = this.filterToDosByPriority(allToDosDone, "Medium");
+        List<ToDo> toDosWithLowPriority = this.filterToDosByPriority(allToDosDone, "Low");
+
+        Long averageAll = Double.valueOf(Math.floor(allToDosDone.stream().mapToLong(ToDo::getTimeToComplete).average().orElse(0))).longValue();
+        Long averageHigh = Double.valueOf(Math.round(toDosWithHighPriority.stream().mapToLong(ToDo::getTimeToComplete).average().orElse(0))).longValue();
+        Long averageMedium = Double.valueOf(Math.round(toDosWithMediumPriority.stream().mapToLong(ToDo::getTimeToComplete).average().orElse(0))).longValue();
+        Long averageLow = Double.valueOf(Math.round(toDosWithLowPriority.stream().mapToLong(ToDo::getTimeToComplete).average().orElse(0))).longValue();
+
+        List<Long> statistics = new ArrayList<>();
+        statistics.add(averageAll); statistics.add(averageHigh); statistics.add(averageMedium); statistics.add(averageLow);
+
+        return statistics;
+
     }
 
     public void deleteAllToDos() {

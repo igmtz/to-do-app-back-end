@@ -13,7 +13,8 @@ public class ToDo {
     private LocalDateTime creationDate;
     private LocalDateTime doneDate;
     private boolean doneUndoneFlag;
-    private Duration timeToComplete;
+    private Long timeToComplete;
+    private String color;
 
     public ToDo() {
     }
@@ -26,6 +27,7 @@ public class ToDo {
         this.doneDate = null;
         this.doneUndoneFlag = false;
         this.timeToComplete = null;
+        this.color = null;
     }
 
     public ToDo(String name, String priority) {
@@ -36,6 +38,7 @@ public class ToDo {
         this.doneDate = null;
         this.doneUndoneFlag = false;
         this.timeToComplete = null;
+        this.color = "black";
     }
 
     public String getId() {
@@ -94,11 +97,11 @@ public class ToDo {
         this.doneUndoneFlag = doneUndoneFlag;
     }
 
-    public Duration getTimeToComplete() {
+    public Long getTimeToComplete() {
         return timeToComplete;
     }
 
-    public void setTimeToComplete(Duration timeToComplete) {
+    public void setTimeToComplete(Long timeToComplete) {
         this.timeToComplete = timeToComplete;
     }
 
