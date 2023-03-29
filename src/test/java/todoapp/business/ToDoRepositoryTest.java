@@ -27,6 +27,7 @@ class ToDoRepositoryTest {
         toDoRepository.deleteAll();
     }
 
+    // findAll()
     @Test
     void whenObjectsAdded_thenFindAll_ObjectReturned_andCheckSizeAndContent() {
         ToDo toDoOne = toDoRepository.save(new ToDo("Create tests", "High"));
@@ -46,6 +47,7 @@ class ToDoRepositoryTest {
                 .isEmpty();
     }
 
+    //save()
     @Test
     void whenObjectGiven_andDoesNotExistsOnList_thenAddObject() {
         ToDo toDoCreated = new ToDo("Create tests", "High");
@@ -91,6 +93,7 @@ class ToDoRepositoryTest {
         assertEquals("The object can't be null", exception.getMessage());
     }
 
+    //getById
     @Test
     void whenGetById_ObjectFound_ObjectReturned() throws ToDoNotFoundException {
         ToDo toDoSaved = toDoRepository.save(new ToDo("Create tests", "High"));
@@ -122,6 +125,7 @@ class ToDoRepositoryTest {
         assertEquals("The to do with the id" + invalidId + " was not found", exception.getMessage());
     }
 
+    // delete()
     @Test
     void whenObjectsAdded_thenDeleteById_checkSizeAndContent() throws ToDoNotFoundException {
         toDoRepository.save(new ToDo("Create tests", "High"));

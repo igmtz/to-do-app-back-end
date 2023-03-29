@@ -8,8 +8,10 @@ import org.springframework.web.server.ResponseStatusException;
 import todoapp.persistence.exception.ToDoNotFoundException;
 import todoapp.persistence.model.ToDo;
 
+import java.awt.print.Pageable;
 import java.time.Duration;
 
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -35,6 +37,10 @@ public class ToDoService {
 
         if (toDo.getName().isEmpty() | toDo.getName().length() > 120) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The name parameter can't be empty or have more than 120 characters length");
+        }
+
+        if(toDoRepository.findAll().stream().anyMatch(element -> element.getName().equals(toDo.getName()))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The To Do with the name " + toDo.getName() + "is already created ");
         }
 
         return toDoRepository.save(toDo);
@@ -68,6 +74,7 @@ public class ToDoService {
             pastToDo.setName(toDo.getName());
             pastToDo.setPriority(toDo.getPriority());
             pastToDo.setDueDate(toDo.getDueDate());
+            pastToDo.setDaysToComplete(ChronoUnit.DAYS.between(pastToDo.getCreationDate(), pastToDo.getDueDate().atStartOfDay().plusDays(1)));
             return toDoRepository.save(pastToDo);
         } catch (ToDoNotFoundException exception) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, exception.getMessage());
@@ -76,53 +83,52 @@ public class ToDoService {
         }
     }
 
-    public List<List<ToDo>> pagination(String name, String priority, Boolean doneUnDoneFlag, String priorityOrder, String dateOrder) {
-        List<ToDo> totalElements = this.getElementsSortedAndFiltered(name, priority, doneUnDoneFlag, priorityOrder, dateOrder);
-
-        int pageSize = 10;
-        int numberOfPages = (int) Math.ceil((double) totalElements.size()/pageSize);
-
-        List<List<ToDo>> pages = new ArrayList<>();
-
-        for( int page = 0; page < numberOfPages; page++) {
-            int minIndex = page * pageSize;
-            int maxIndex = Math.min(minIndex + pageSize, totalElements.size());
-            List<ToDo> sublist = totalElements.subList(minIndex, maxIndex);
-            pages.add(sublist);
+    public List<ToDo> getToDosSortedAndFilteredWithPagination(String name, String priority, Boolean doneUnDoneFlag, String priorityOrder, String dateOrder, int pageNumber) {
+        if (name.equals("") && priority.equals("default") && doneUnDoneFlag == null && priorityOrder.equals("default") && dateOrder.equals("default")) {
+            return this.pagination(toDoRepository.findAll(), pageNumber);
         }
 
-        return pages;
-    }
-
-    public List<ToDo> getElementsSortedAndFiltered(String name, String priority, Boolean doneUnDoneFlag, String priorityOrder, String dateOrder) {
-        List<ToDo> initialList = this.findAllToDos();
+        List<ToDo> initialList = this.pagination(toDoRepository.findAll(), pageNumber);
 
         List<ToDo> filteredPriority = this.filterToDosByPriority(initialList, priority);
         List<ToDo> filteredByName = this.filterToDosByName(filteredPriority, name);
         List<ToDo> filteredByFlag = this.filterToDosByFlag(filteredByName, doneUnDoneFlag);
 
-        return this.stableSort(filteredByFlag, priorityOrder, dateOrder);
+        List<ToDo> sortedList = this.stableSort(filteredByFlag, priorityOrder,  dateOrder);
+
+        return sortedList;
+    }
+
+    public List<ToDo> pagination(List<ToDo> listToPage, int pageNumber) {
+        int offset = (pageNumber - 1) * 10;
+        return listToPage.stream().skip(offset).limit(10).toList();
     }
 
     public List<ToDo> filterToDosByPriority(List<ToDo> prevList, String priority) {
         if (priority.equals("default")) {
             return prevList;
         }
-        return prevList.stream().filter(toDo -> toDo.getPriority().equals(priority)).collect(Collectors.toCollection(ArrayList::new));
+        return prevList.stream().filter(toDo -> toDo.getPriority().equals(priority))
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     public List<ToDo> filterToDosByName(List<ToDo> prevList, String name) {
         if (name.equals("")) {
             return prevList;
         }
-        return prevList.stream().filter(toDo -> Pattern.compile(Pattern.quote(name), Pattern.CASE_INSENSITIVE).matcher(toDo.getName()).find()).collect(Collectors.toCollection(ArrayList::new));
+        return prevList.stream()
+                .filter(toDo -> Pattern.compile(Pattern.quote(name), Pattern.CASE_INSENSITIVE)
+                .matcher(toDo.getName()).find())
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     public List<ToDo> filterToDosByFlag(List<ToDo> prevList, Boolean flag) {
         if (flag == null) {
             return prevList;
         }
-        return prevList.stream().filter(toDo -> toDo.isDoneUndoneFlag() == flag).collect(Collectors.toCollection(ArrayList::new));
+        return prevList.stream()
+                .filter(toDo -> toDo.isDoneUndoneFlag() == flag)
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     public List<ToDo> stableSort(List<ToDo> list, String priorityOrder, String dateOrder) {
@@ -133,10 +139,14 @@ public class ToDoService {
     public List<ToDo> sortToDosByDueDate(List<ToDo> list, String value) {
         switch (value) {
             case "asc" -> {
-                return list.stream().sorted(Comparator.comparing(ToDo::getDueDate, Comparator.nullsLast(Comparator.naturalOrder()))).collect(Collectors.toCollection(ArrayList::new));
+                return list.stream()
+                        .sorted(Comparator.comparing(ToDo::getDueDate, Comparator.nullsLast(Comparator.naturalOrder())))
+                        .collect(Collectors.toCollection(ArrayList::new));
             }
             case "desc" -> {
-                return list.stream().sorted(Comparator.comparing(ToDo::getDueDate, Comparator.nullsLast(Comparator.reverseOrder()))).collect(Collectors.toCollection(ArrayList::new));
+                return list.stream()
+                        .sorted(Comparator.comparing(ToDo::getDueDate, Comparator.nullsLast(Comparator.reverseOrder())))
+                        .collect(Collectors.toCollection(ArrayList::new));
             }
             default -> {
                 return list;
@@ -147,6 +157,7 @@ public class ToDoService {
     public List<ToDo> sortToDosByPriority(List<ToDo> list, String value) {
         List<ToDo> sortedToDos = new ArrayList<>(list);
         List<String> priorities = Arrays.asList("High", "Medium", "Low");
+
         sortedToDos.sort((o1, o2) -> {
             int p1 = priorities.indexOf(o1.getPriority());
             int p2 = priorities.indexOf(o2.getPriority());
@@ -201,15 +212,14 @@ public class ToDoService {
         List<ToDo> toDosWithLowPriority = this.filterToDosByPriority(allToDosDone, "Low");
 
         Long averageAll = Double.valueOf(Math.floor(allToDosDone.stream().mapToLong(ToDo::getTimeToComplete).average().orElse(0))).longValue();
-        Long averageHigh = Double.valueOf(Math.round(toDosWithHighPriority.stream().mapToLong(ToDo::getTimeToComplete).average().orElse(0))).longValue();
-        Long averageMedium = Double.valueOf(Math.round(toDosWithMediumPriority.stream().mapToLong(ToDo::getTimeToComplete).average().orElse(0))).longValue();
-        Long averageLow = Double.valueOf(Math.round(toDosWithLowPriority.stream().mapToLong(ToDo::getTimeToComplete).average().orElse(0))).longValue();
+        Long averageHigh = Double.valueOf(Math.floor(toDosWithHighPriority.stream().mapToLong(ToDo::getTimeToComplete).average().orElse(0))).longValue();
+        Long averageMedium = Double.valueOf(Math.floor(toDosWithMediumPriority.stream().mapToLong(ToDo::getTimeToComplete).average().orElse(0))).longValue();
+        Long averageLow = Double.valueOf(Math.floor(toDosWithLowPriority.stream().mapToLong(ToDo::getTimeToComplete).average().orElse(0))).longValue();
 
         List<Long> statistics = new ArrayList<>();
         statistics.add(averageAll); statistics.add(averageHigh); statistics.add(averageMedium); statistics.add(averageLow);
 
         return statistics;
-
     }
 
     public void deleteAllToDos() {

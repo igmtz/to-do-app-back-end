@@ -13,6 +13,7 @@ import todoapp.persistence.model.ToDo;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,7 +31,7 @@ class ToDoServiceTest {
         toDoService.deleteAllToDos();
     }
 
-    //addToDo ***
+    //addToDo
 
     @Test
     void whenAddToDo_thenFindAll_checkSizeAndContent_ToDoReturned() {
@@ -98,7 +99,6 @@ class ToDoServiceTest {
     }
 
     //findAllToDos
-
     @Test
     void whenFindAllToDos_withNoToDosAdded_getEmptyArray() {
         assertThat(toDoService.findAllToDos()).isEmpty();
@@ -119,7 +119,7 @@ class ToDoServiceTest {
                 .contains(toDoFour);
     }
 
-    //Delete
+    //delete
     @Test
     void whenAddedToDo_ThenDeleteToDo_checkArraySizeAndContent() {
         toDoService.addToDo(new ToDo("Create tests", "High"));
@@ -305,78 +305,146 @@ class ToDoServiceTest {
     }
 
     @Test
-    void sortToDosByPriority() {
+    void whenToDosAdded_thenFilterToDosByPriority_checkSizeAndContent() {
         ToDo toDoOne = toDoService.addToDo(new ToDo("Create tests", "High"));
         ToDo toDoTwo = toDoService.addToDo(new ToDo("Start Front End", "Low", LocalDate.parse("2023-12-03")));
         ToDo toDoThree = toDoService.addToDo(new ToDo("Start Back End", "Medium"));
         ToDo toDoFour = toDoService.addToDo(new ToDo("Get groceries", "Low", LocalDate.parse("2023-12-17")));
 
-        List<ToDo> testList = toDoService.findAllToDos().stream().toList();
+        List<ToDo> newList = toDoService.getToDosSortedAndFilteredWithPagination("", "High", null, "default", "default", 1);
 
-        System.out.println(toDoService.sortToDosByPriority(testList, "desc"));
+        assertThat(newList)
+                .hasSize(1)
+                .contains(toDoOne);
     }
 
+    // getToDosSortedAndFiltered
     @Test
-    void sortToDosByDueDate() {
-        ToDo toDoOne = toDoService.addToDo(new ToDo("Create tests", "High", LocalDate.parse("2023-12-15")));
+    void whenToDosAdded_thenFilterToDosByName_checkSizeAndContent() {
+        ToDo toDoOne = toDoService.addToDo(new ToDo("Create tests", "High"));
         ToDo toDoTwo = toDoService.addToDo(new ToDo("Start Front End", "Low", LocalDate.parse("2023-12-03")));
         ToDo toDoThree = toDoService.addToDo(new ToDo("Start Back End", "Medium"));
         ToDo toDoFour = toDoService.addToDo(new ToDo("Get groceries", "Low", LocalDate.parse("2023-12-17")));
 
-        List<ToDo> testList = toDoService.findAllToDos().stream().toList();
+        List<ToDo> newList = toDoService.getToDosSortedAndFilteredWithPagination("end", "default", null, "default", "default", 1);
 
-        System.out.println(toDoService.sortToDosByDueDate(testList, "asc"));
+        assertThat(newList)
+                .hasSize(2)
+                .contains(toDoTwo)
+                .contains(toDoThree);
     }
 
     @Test
-    void stableSortTest() {
-        ToDo toDoOne = toDoService.addToDo(new ToDo("Create tests", "High", LocalDate.parse("2023-12-15")));
+    void whenToDosAdded_thenFilterToDosByDoneUndoneFlag_checkSizeAndContent() {
+        ToDo toDoOne = toDoService.addToDo(new ToDo("Create tests", "High"));
         ToDo toDoTwo = toDoService.addToDo(new ToDo("Start Front End", "Low", LocalDate.parse("2023-12-03")));
         ToDo toDoThree = toDoService.addToDo(new ToDo("Start Back End", "Medium"));
         ToDo toDoFour = toDoService.addToDo(new ToDo("Get groceries", "Low", LocalDate.parse("2023-12-17")));
-        ToDo toDoFive = toDoService.addToDo(new ToDo("Get groceries", "Medium", LocalDate.parse("2023-12-02")));
-        ToDo toDoSix = toDoService.addToDo(new ToDo("Get groceries", "Medium", LocalDate.parse("2023-12-08")));
-        ToDo toDoSeven = toDoService.addToDo(new ToDo("Get groceries", "Medium", LocalDate.parse("2023-12-23")));
-
-        List<ToDo> testList = toDoService.findAllToDos().stream().toList();
-
-        System.out.println(toDoService.stableSort(testList, "desc", "asc"));
-    }
-
-    @Test
-    void testStatistics() {
-        ToDo toDoOne = toDoService.addToDo(new ToDo("Create tests", "High", LocalDate.parse("2023-12-15")));
-        ToDo toDoTwo = toDoService.addToDo(new ToDo("Start Front End", "Low", LocalDate.parse("2023-12-03")));
-        ToDo toDoThree = toDoService.addToDo(new ToDo("Start Back End", "Medium"));
-        ToDo toDoFour = toDoService.addToDo(new ToDo("Get groceries", "Low", LocalDate.parse("2023-12-17")));
-
-        toDoService.markToDoAsDone(toDoOne.getId());
-        toDoOne.setTimeToComplete(Duration.between(LocalDateTime.now(), LocalDateTime.parse("2023-03-20T14:34:50.62")).toMinutes());
-
-        toDoService.markToDoAsDone(toDoTwo.getId());
-        toDoTwo.setTimeToComplete(Duration.between(LocalDateTime.now(), LocalDateTime.parse("2023-03-20T10:34:50.62")).toMinutes());
-
-        toDoService.markToDoAsDone(toDoThree.getId());
-        toDoThree.setTimeToComplete(Duration.between(LocalDateTime.now(), LocalDateTime.parse("2023-03-20T11:34:50.62")).toMinutes());
 
         toDoService.markToDoAsDone(toDoFour.getId());
-        toDoFour.setTimeToComplete(Duration.between(LocalDateTime.now(), LocalDateTime.parse("2023-03-20T10:15:50.62")).toMinutes());
 
-        System.out.println(toDoService.getStatistics());
+        List<ToDo> newList = toDoService.getToDosSortedAndFilteredWithPagination("", "default", false, "default", "default", 1);
+
+        assertThat(newList)
+                .hasSize(3)
+                .contains(toDoOne)
+                .contains(toDoTwo)
+                .contains(toDoThree);
     }
 
     @Test
-    void filterToDosByName() {
+    void whenToDosAdded_thenSortedByDueDateAscendant_checkContent() {
+        ToDo toDoOne = toDoService.addToDo(new ToDo("Create tests", "High", LocalDate.parse("2023-12-17")));
+        ToDo toDoTwo = toDoService.addToDo(new ToDo("Start Front End", "Low", LocalDate.parse("2023-12-02")));
+        ToDo toDoThree = toDoService.addToDo(new ToDo("Start Back End", "Medium"));
+        ToDo toDoFour = toDoService.addToDo(new ToDo("Get groceries", "Low", LocalDate.parse("2023-12-06")));
+
+        List<ToDo> actualList = toDoService.getToDosSortedAndFilteredWithPagination("", "default", null, "default", "asc", 1);
+        List<ToDo> expectedList = new ArrayList<>();
+
+        expectedList.add(toDoTwo);expectedList.add(toDoFour);expectedList.add(toDoOne);expectedList.add(toDoThree);
+
+        assertThat(actualList).isEqualTo(expectedList);
     }
 
     @Test
-    void filterToDosByPriority() {
+    void whenToDosAdded_thenSortedByDueDateDescendant_checkContent() {
+        ToDo toDoOne = toDoService.addToDo(new ToDo("Create tests", "High", LocalDate.parse("2023-12-17")));
+        ToDo toDoTwo = toDoService.addToDo(new ToDo("Start Front End", "Low", LocalDate.parse("2023-12-02")));
+        ToDo toDoThree = toDoService.addToDo(new ToDo("Start Back End", "Medium"));
+        ToDo toDoFour = toDoService.addToDo(new ToDo("Get groceries", "Low", LocalDate.parse("2023-12-06")));
+
+        List<ToDo> actualList = toDoService.getToDosSortedAndFilteredWithPagination("", "default", null, "default", "desc", 1);
+        List<ToDo> expectedList = new ArrayList<>();
+
+        expectedList.add(toDoOne);expectedList.add(toDoFour);expectedList.add(toDoTwo);expectedList.add(toDoThree);
+
+        assertThat(actualList).isEqualTo(expectedList);
     }
 
     @Test
-    void filterToDosByFlag() {
+    void whenToDosAdded_thenSortedByPriorityAscendant_checkContent() {
+        ToDo toDoOne = toDoService.addToDo(new ToDo("Create tests", "High", LocalDate.parse("2023-12-17")));
+        ToDo toDoTwo = toDoService.addToDo(new ToDo("Start Front End", "Low", LocalDate.parse("2023-12-02")));
+        ToDo toDoThree = toDoService.addToDo(new ToDo("Start Back End", "Medium"));
+
+        List<ToDo> actualList = toDoService.getToDosSortedAndFilteredWithPagination("", "default", null, "asc", "default", 1);
+        List<ToDo> expectedList = new ArrayList<>();
+
+        expectedList.add(toDoOne);expectedList.add(toDoThree);expectedList.add(toDoTwo);
+
+        assertThat(actualList).isEqualTo(expectedList);
     }
 
-    //filterToDosByFlag
+    @Test
+    void whenToDosAdded_thenSortedByPriorityDescendant_checkContent() {
+        ToDo toDoOne = toDoService.addToDo(new ToDo("Create tests", "High", LocalDate.parse("2023-12-17")));
+        ToDo toDoTwo = toDoService.addToDo(new ToDo("Start Front End", "Low", LocalDate.parse("2023-12-02")));
+        ToDo toDoThree = toDoService.addToDo(new ToDo("Start Back End", "Medium"));
 
+        List<ToDo> actualList = toDoService.getToDosSortedAndFilteredWithPagination("", "default", null, "desc", "default", 1);
+        List<ToDo> expectedList = new ArrayList<>();
+
+        expectedList.add(toDoTwo);expectedList.add(toDoThree);expectedList.add(toDoOne);
+
+        assertThat(actualList).isEqualTo(expectedList);
+    }
+
+    @Test
+    void whenToDosAdded_thenFilteredAndSorted_checkSizeAndContent() {
+        ToDo toDoOne = toDoService.addToDo(new ToDo("Create tests", "High", LocalDate.parse("2023-12-17")));
+        ToDo toDoTwo = toDoService.addToDo(new ToDo("Start Front End", "Low", LocalDate.parse("2023-12-18")));
+        ToDo toDoThree = toDoService.addToDo(new ToDo("Start Back End", "Medium"));
+        ToDo toDoFour = toDoService.addToDo(new ToDo("Get groceries", "Low", LocalDate.parse("2023-12-02")));
+        ToDo toDoFive = toDoService.addToDo(new ToDo("Create tests", "High", LocalDate.parse("2023-12-17")));
+        ToDo toDoSix = toDoService.addToDo(new ToDo("Start Front End", "Low", LocalDate.parse("2023-12-13")));
+        ToDo toDoSeven = toDoService.addToDo(new ToDo("Start Back End", "Medium"));
+        ToDo toDoEight = toDoService.addToDo(new ToDo("Get groceries", "Low"));
+
+        List<ToDo> actualList = toDoService.getToDosSortedAndFilteredWithPagination("", "Low", null, "default", "desc", 1);
+        List<ToDo> expectedList = new ArrayList<>();
+
+        expectedList.add(toDoTwo);expectedList.add(toDoSix); expectedList.add(toDoFour);expectedList.add(toDoEight);
+
+        assertThat(actualList).isEqualTo(expectedList);
+    }
+
+    @Test
+    void pagination() {
+        ToDo toDoOne = toDoService.addToDo(new ToDo("Create tests", "High", LocalDate.parse("2023-12-17")));
+        ToDo toDoTwo = toDoService.addToDo(new ToDo("Start Front End", "Low", LocalDate.parse("2023-12-18")));
+        ToDo toDoThree = toDoService.addToDo(new ToDo("Start Back End", "Medium"));
+        ToDo toDoFour = toDoService.addToDo(new ToDo("Get groceries", "Low", LocalDate.parse("2023-12-02")));
+        ToDo toDoFive = toDoService.addToDo(new ToDo("Create tests", "High", LocalDate.parse("2023-12-17")));
+        ToDo toDoSix = toDoService.addToDo(new ToDo("Start Front End", "Low", LocalDate.parse("2023-12-13")));
+        ToDo toDoSeven = toDoService.addToDo(new ToDo("Start Back End", "Medium"));
+        ToDo toDoEight = toDoService.addToDo(new ToDo("Get groceries", "Low"));
+        ToDo toDoNine = toDoService.addToDo(new ToDo("Start Back End", "Medium"));
+        ToDo toDoEleven = toDoService.addToDo(new ToDo("Get groceries", "Low"));
+        ToDo toDoTwelve = toDoService.addToDo(new ToDo("Start Back End", "Medium"));
+        ToDo toDoThirteenth = toDoService.addToDo(new ToDo("Get groceries", "Low"));
+
+        System.out.println(toDoService.findAllToDos().size());
+        System.out.println(toDoService.pagination(toDoService.findAllToDos(), 2).size());
+    }
 }

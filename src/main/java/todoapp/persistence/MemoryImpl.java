@@ -26,6 +26,11 @@ public class MemoryImpl implements ToDoRepository {
         if (storedToDos.containsKey(toDo.getId())) {
             storedToDos.replace(toDo.getId(), toDo);
             return toDo;
+        } else if (toDo.getDueDate() == null) {
+            ToDo newToDo = new ToDo(toDo.getName(), toDo.getPriority());
+            newToDo.setId(UUID.randomUUID().toString());
+            storedToDos.put(newToDo.getId(), newToDo);
+            return newToDo;
         } else {
             ToDo newToDo = new ToDo(toDo.getName(), toDo.getPriority(), toDo.getDueDate());
             newToDo.setId(UUID.randomUUID().toString());

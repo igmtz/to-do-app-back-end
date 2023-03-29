@@ -1,20 +1,24 @@
 package todoapp.persistence.model;
 
-import java.time.Duration;
+import org.jetbrains.annotations.NotNull;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 public class ToDo {
 
     private String id;
+    @NotNull
     private String name;
+    @NotNull
     private String priority;
     private LocalDate dueDate;
     private LocalDateTime creationDate;
     private LocalDateTime doneDate;
     private boolean doneUndoneFlag;
     private Long timeToComplete;
-    private String color;
+    private Long daysToComplete;
 
     public ToDo() {
     }
@@ -27,7 +31,7 @@ public class ToDo {
         this.doneDate = null;
         this.doneUndoneFlag = false;
         this.timeToComplete = null;
-        this.color = null;
+        this.daysToComplete = ChronoUnit.DAYS.between(this.creationDate, this.dueDate.atStartOfDay().plusDays(1));
     }
 
     public ToDo(String name, String priority) {
@@ -38,7 +42,7 @@ public class ToDo {
         this.doneDate = null;
         this.doneUndoneFlag = false;
         this.timeToComplete = null;
-        this.color = "black";
+        this.daysToComplete = 0L;
     }
 
     public String getId() {
@@ -105,9 +109,17 @@ public class ToDo {
         this.timeToComplete = timeToComplete;
     }
 
+    public Long getDaysToComplete() {
+        return daysToComplete;
+    }
+
+    public void setDaysToComplete(Long daysToComplete) {
+        this.daysToComplete = daysToComplete;
+    }
+
     @Override
     public String toString() {
-        return "Model.ToDo{" +
+        return "ToDo{" +
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
                 ", priority='" + priority + '\'' +
@@ -115,6 +127,8 @@ public class ToDo {
                 ", creationDate=" + creationDate +
                 ", doneDate=" + doneDate +
                 ", doneUndoneFlag=" + doneUndoneFlag +
+                ", timeToComplete=" + timeToComplete +
+                ", daysToComplete=" + daysToComplete +
                 '}';
     }
 }
